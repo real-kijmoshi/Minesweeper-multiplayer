@@ -6,7 +6,7 @@ class Tile:
     FLAG = "🚩"
     UNKNOWN = "⬛"
 
-    NUMBERS = ["⬜", "1️⃣ ", "2️⃣ ", "3️⃣ ", "4️⃣ ", "5️⃣ ", "6️⃣ ", "7️⃣ ", "8️⃣ "]
+    NUMBERS = ["🟦", "1️⃣ ", "2️⃣ ", "3️⃣ ", "4️⃣ ", "5️⃣ ", "6️⃣ ", "7️⃣ ", "8️⃣ "]
 
     def __init__(self, x, y):
         self.x = x
@@ -36,19 +36,42 @@ class Board:
         self.height = dimensions[1]
 
         self.board = [[Tile(x, y) for x in range(self.width)] for y in range(self.height)]
+        self.not_revealed = self.width * self.height - num_mines
 
         self._setup_board(num_mines)
 
     def click(self, x, y):
-        if self.board[y][x].is_revealed: return
+        if self.board[y][x].is_bomb:
+            raise Exception("Can't use click function on a bomb tile.")
+
+        if self.board[y][x].is_revealed and self.board[y][x].adjacent_bombs == 0: return
         if self.board[y][x].is_flagged: return
 
+        # clicking on a revealed tile 
+        if self.board[y][x].is_revealed:
+            f = 0
+            for neighbor in self.neighbors(x, y):
+                if neighbor.is_flagged:
+                    f += 1
+
+            if f != self.board[y][x].adjacent_bombs: return
+
+            for neighbor in self.neighbors(x, y):
+                if not neighbor.is_flagged and not neighbor.is_revealed:
+                    self.click(neighbor.x, neighbor.y)
+            return 
+
         self.board[y][x].is_revealed = True
-        for neighbor in self.neighbors(x, y):
-            if neighbor.adjacent_bombs == 0:
-                self.click(neighbor.x, neighbor.y)
-            else:
-                neighbor.is_revealed = True
+        self.not_revealed -= 1
+
+        if self.board[y][x].adjacent_bombs == 0:
+            for neighbor in self.neighbors(x, y):
+                if not neighbor.is_revealed:
+                    self.click(neighbor.x, neighbor.y)
+
+    @property
+    def is_won(self):
+        return self.not_revealed == 0
 
     def neighbors(self, x, y):
         for dx in [-1, 0, 1]:
@@ -86,8 +109,11 @@ class Board:
 
 b = Board((10, 10), 10)
 
-print(b)
-print("\n\n")
-b.click(5, 5)
-
-print(b)
+while not b.is_won:
+    print(b)
+    print(f"Not revealed: {b.not_revealed}")
+    x, y, f = map(int, input("Enter x, y, f: ").split())
+    if f:
+        b.board[y][x].is_flagged = not b.board[y][x].is_flagged
+    else:
+        b.click(x, y)
