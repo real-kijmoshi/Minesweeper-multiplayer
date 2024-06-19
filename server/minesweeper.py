@@ -42,10 +42,12 @@ class Board:
 
     def click(self, x, y):
         if self.board[y][x].is_bomb:
-            raise Exception("Can't use click function on a bomb tile.")
+            return [Action(None, "loss")]
 
-        if self.board[y][x].is_revealed and self.board[y][x].adjacent_bombs == 0: return
-        if self.board[y][x].is_flagged: return
+        revealed = []
+
+        if self.board[y][x].is_revealed and self.board[y][x].adjacent_bombs == 0: return revealed
+        if self.board[y][x].is_flagged: return revealed
 
         # clicking on a revealed tile 
         if self.board[y][x].is_revealed:
@@ -54,20 +56,30 @@ class Board:
                 if neighbor.is_flagged:
                     f += 1
 
-            if f != self.board[y][x].adjacent_bombs: return
+            if f != self.board[y][x].adjacent_bombs: return revealed
 
             for neighbor in self.neighbors(x, y):
                 if not neighbor.is_flagged and not neighbor.is_revealed:
-                    self.click(neighbor.x, neighbor.y)
-            return 
+                    clicked = self.click(neighbor.x, neighbor.y)
+                    revealed.extend(clicked)
+            return revealed
 
         self.board[y][x].is_revealed = True
+        revealed.append(Action(self.board[y][x], "reveal"))
         self.not_revealed -= 1
 
         if self.board[y][x].adjacent_bombs == 0:
             for neighbor in self.neighbors(x, y):
                 if not neighbor.is_revealed:
-                    self.click(neighbor.x, neighbor.y)
+                    clicked = self.click(neighbor.x, neighbor.y)
+                    revealed.extend(clicked)
+        
+        return revealed
+
+    def flag(self, x, y):
+        if self.board[y][x].is_revealed: return []
+        self.board[y][x].is_flagged = not self.board[y][x].is_flagged
+        return [Action(self.board[y][x], "flag")]
 
     @property
     def is_won(self):
@@ -107,6 +119,12 @@ class Board:
         return "\n".join(["".join([str(tile) for tile in row]) for row in self.board])
         
 
+class Action:
+    def __init__(self, tile, type):
+        self.tile = tile
+        self.type = type
+
+
 b = Board((10, 10), 10)
 
 while not b.is_won:
@@ -114,6 +132,6 @@ while not b.is_won:
     print(f"Not revealed: {b.not_revealed}")
     x, y, f = map(int, input("Enter x, y, f: ").split())
     if f:
-        b.board[y][x].is_flagged = not b.board[y][x].is_flagged
+        b.flag(x, y)
     else:
         b.click(x, y)
