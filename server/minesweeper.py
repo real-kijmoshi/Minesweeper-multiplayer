@@ -125,13 +125,14 @@ class Action:
         self.type = type
 
 
-b = Board((10, 10), 10)
+if __name__ == "__main__":
+    b = Board((10, 10), 10)
 
-while not b.is_won:
-    print(b)
-    print(f"Not revealed: {b.not_revealed}")
-    x, y, f = map(int, input("Enter x, y, f: ").split())
-    if f:
-        b.flag(x, y)
-    else:
-        b.click(x, y)
+    while not b.is_won:
+        print(b)
+        print(f"Not revealed: {b.not_revealed}")
+        x, y, f = map(int, input("Enter x, y, f: ").split())
+        if f:
+            b.flag(x, y)
+        else:
+            b.click(x, y)
