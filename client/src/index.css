@@ -2,15 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-    --primary-color: #131313;
-
-    --primary-text-color: #ffffff;
-}
-
-
 body {
-    font-family: 'Roboto', sans-serif;
-    background-color: var(--primary-color);
-    color: var(--primary-text-color);
+  font-family: "Roboto", sans-serif;
 }
