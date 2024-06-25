@@ -178,7 +178,7 @@ function Home() {
 
     useEffect(() => {
         if (roomId) {
-            window.location.href = `/rooms/${roomId}`;
+            window.location.href = `/lobby/${roomId}`;
         }
     }, [roomId]);
 
